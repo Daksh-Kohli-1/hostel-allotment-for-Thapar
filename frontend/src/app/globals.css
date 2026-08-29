@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #F6F3EC;
+  color: #0B1F33;
+  font-family: 'Inter', sans-serif;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
+}
+
+.room-empty { background-color: #E7F3EC; border-color: #2E7D5B; }
+.room-partial { background-color: #FDF1E6; border-color: #E4572E; }
+.room-full { background-color: #F1F1F1; border-color: #9AA5AF; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #3E7CB1; border-radius: 8px; }
