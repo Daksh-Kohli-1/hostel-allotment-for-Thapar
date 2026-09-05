@@ -134,30 +134,52 @@ async def seed_initial_data():
         db.add(admin)
 
         # ---------- Demo students ----------
-        # 1) Solo student who has ALREADY PAID and been allotted a room -
-        #    demonstrates single students booking without a group.
-        solo_boy = _make_student("Karan Mehta", "102303001", "karan.mehta@thapar.edu", GenderEnum.male, 2, "Computer Science", "9999900001")
-        # 2) A 3-member group where only 2 members have paid so far -
-        #    demonstrates that allotment does not wait for the whole group.
-        leader_3 = _make_student("Ishaan Kapoor", "102303002", "ishaan.kapoor@thapar.edu", GenderEnum.male, 1, "Electronics", "9999900002")
-        member_3a = _make_student("Rohan Sharma", "102303003", "rohan.sharma@thapar.edu", GenderEnum.male, 1, "Electronics", "9999900003")
-        member_3b_unpaid = _make_student("Aditya Verma", "102303004", "aditya.verma@thapar.edu", GenderEnum.male, 1, "Mechanical", "9999900004")
-        # 3) A full 4-member group, all paid, cluster fully booked & confirmed.
-        leader_4 = _make_student("Yash Gupta", "102303005", "yash.gupta@thapar.edu", GenderEnum.male, 3, "Computer Science", "9999900005")
-        member_4a = _make_student("Dev Malhotra", "102303006", "dev.malhotra@thapar.edu", GenderEnum.male, 3, "Computer Science", "9999900006")
-        member_4b = _make_student("Arjun Nair", "102303007", "arjun.nair@thapar.edu", GenderEnum.male, 3, "Civil", "9999900007")
-        member_4c = _make_student("Vivaan Joshi", "102303008", "vivaan.joshi@thapar.edu", GenderEnum.male, 3, "Civil", "9999900008")
-        # 4) Solo female student, paid & allotted, in a girls hostel.
-        solo_girl = _make_student("Ananya Singh", "102303009", "ananya.singh@thapar.edu", GenderEnum.female, 2, "Computer Science", "9999900009")
-        # 5) A brand-new student who has just signed up: no group, no payment, no booking yet.
-        fresh_student = _make_student("Priya Reddy", "102303010", "priya.reddy@thapar.edu", GenderEnum.female, 1, "Electronics", "9999900010")
+        students = []
+        for i in range(1, 101):
+            if i == 1:
+                avleen = _make_student("Avleen Kaur", "2023CS1045", "avleen.kaur@thapar.edu", GenderEnum.female, 2, "Computer Engineering", "9876543210")
+                avleen.password_hash = hash_password("Nest@123")
+                avleen.father_name = "Gurpreet Singh Kaur"
+                avleen.mother_name = "Harpreet Kaur"
+                avleen.emergency_contact_name = "Gurpreet Singh"
+                avleen.emergency_contact_phone = "+91 98765 43210"
+                avleen.aadhaar_no = "XXXX-XXXX-8921"
+                avleen.address = "House No. 452, Sector 15-A, Chandigarh"
+                avleen.dob = "2004-05-14"
+                avleen.vehicle_type = "Scooter"
+                avleen.vehicle_model = "Vespa SXL 125"
+                avleen.vehicle_reg_no = "CH01-CB-4921"
+                avleen.program = "B.Tech"
+                avleen.department = "Computer Engineering"
+                avleen.section = "COE-2"
+                db.add(avleen)
+                students.append(avleen)
+            else:
+                student = _make_student(
+                    f"Student {i}", 
+                    f"2023CS{1100+i}", 
+                    f"student{i}@thapar.edu", 
+                    GenderEnum.male if i % 2 == 0 else GenderEnum.female, 
+                    1, 
+                    "Computer Science", 
+                    f"9999900{i:03d}"
+                )
+                db.add(student)
+                students.append(student)
 
-        db.add_all([
-            solo_boy, leader_3, member_3a, member_3b_unpaid,
-            leader_4, member_4a, member_4b, member_4c,
-            solo_girl, fresh_student,
-        ])
         await db.flush()
+
+        # For scenarios below, let's pick some random students from the pool
+        solo_boy = students[1]
+        leader_3 = students[3]
+        member_3a = students[5]
+        member_3b_unpaid = students[7]
+        leader_4 = students[9]
+        member_4a = students[11]
+        member_4b = students[13]
+        member_4c = students[15]
+        solo_girl = students[2]
+        fresh_student = students[4]
 
         now = datetime.now(timezone.utc)
 
@@ -221,24 +243,62 @@ async def seed_initial_data():
             status=BookingStatus.confirmed, confirmed_at=now,
         ))
 
-        # ---- Scenario 4: solo girl, paid, allotted a single seat ----
+        # ---- Scenario 4: Avleen Kaur group, allotted Room 126 in Pavani Hall ----
         pavani = hostels["Pavani Hall"]
-        cluster_girl = await _get_cluster(db, pavani, 1, 1)
-        rooms_girl = await _get_rooms(db, cluster_girl)
-        rooms_girl["A"].occupied_count = 1
+        res = await db.execute(
+            select(Room).join(Cluster).join(Floor).where(
+                Floor.hostel_id == pavani.id, Room.room_number == 126
+            )
+        )
+        room_126 = res.scalar_one()
+        
+        res_cluster = await db.execute(select(Cluster).where(Cluster.id == room_126.cluster_id))
+        cluster_avleen = res_cluster.scalar_one()
+        
+        room_126.occupied_count = 1
 
-        group_girl = Group(code="SOLOA1", leader_id=solo_girl.id, status=GroupStatus.confirmed, booking_ready_at=now)
-        db.add(group_girl)
+        group_avleen = Group(code="N7K4P2", leader_id=avleen.id, size_limit=4, status=GroupStatus.confirmed, booking_ready_at=now)
+        db.add(group_avleen)
         await db.flush()
-        solo_girl.group_id = group_girl.id
+        avleen.group_id = group_avleen.id
+        solo_girl.group_id = group_avleen.id
 
-        db.add(Preference(group_id=group_girl.id, cluster_id=cluster_girl.id, rank=1))
-        db.add(Payment(user_id=solo_girl.id, group_id=group_girl.id, transaction_ref="SIMPAY-DEMO0008", amount=HOSTEL_FEE, status=PaymentStatus.paid))
+        db.add(Preference(group_id=group_avleen.id, cluster_id=cluster_avleen.id, rank=1))
+        db.add(Payment(user_id=avleen.id, group_id=group_avleen.id, transaction_ref="SIMPAY-AVLEEN01", amount=HOSTEL_FEE, status=PaymentStatus.pending))
+        db.add(Payment(user_id=solo_girl.id, group_id=group_avleen.id, transaction_ref="SIMPAY-ANANYA01", amount=HOSTEL_FEE, status=PaymentStatus.paid))
         db.add(Booking(
-            group_id=group_girl.id, cluster_id=cluster_girl.id, room_ids=rooms_girl["A"].id,
+            group_id=group_avleen.id, cluster_id=cluster_avleen.id, room_ids=room_126.id,
             status=BookingStatus.confirmed, confirmed_at=now,
         ))
 
-        # fresh_student is intentionally left with no group/payment/booking.
+        # ---- Seed Initial Services & Notifications for Avleen ----
+        from app.models.models import ServiceRequest, Notification, MessFeedback, VisitorRequest, LeaveRequest, AmenityBooking
+        db.add(ServiceRequest(
+            user_id=avleen.id, category="Maintenance", subject="Room Cleaning Request",
+            description="Routine room cleaning requested for C-312 washroom.", priority="Medium", status="In progress"
+        ))
+        db.add(Notification(
+            user_id=avleen.id, title="Mess Menu Updated", message="The mess menu for this week has been published.", category="Notice", is_read=False
+        ))
+        db.add(Notification(
+            user_id=avleen.id, title="Hostel Fee Reminder", message="Hostel fee payment of ₹60,000 is due.", category="Payment", is_read=False
+        ))
+        db.add(Notification(
+            user_id=avleen.id, title="Room Allocated", message="Your allocation in Room 126 (Pavani Hall) is reserved.", category="System", is_read=True
+        ))
+        db.add(MessFeedback(
+            user_id=avleen.id, rating=5, comment="Great Rajma Chawal today!"
+        ))
+        db.add(VisitorRequest(
+            user_id=avleen.id, visitor_name="Gurpreet Singh Kaur", phone="+91 98765 43210",
+            relationship="Father", visit_date="2026-09-10", expected_arrival="10:00 AM", expected_departure="04:00 PM", status="Approved"
+        ))
+        db.add(LeaveRequest(
+            user_id=avleen.id, request_type="Day Out", destination="Sector 17, Chandigarh",
+            reason="Shopping and personal work", start_date="2026-09-06", end_date="2026-09-06", expected_return="08:00 PM", emergency_contact="+91 98765 43210", status="Approved"
+        ))
+        db.add(AmenityBooking(
+            user_id=avleen.id, amenity_name="Study Room 3B", booking_date="2026-09-05", time_slot="06:00 PM - 08:00 PM", status="Confirmed"
+        ))
 
         await db.commit()

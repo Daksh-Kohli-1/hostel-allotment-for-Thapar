@@ -7,17 +7,27 @@ import api, { setToken } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  // Official pre-registered university student roster
+  const registeredRoster = [
+    { name: "Avleen Kaur (Female · 2nd Yr · C-312)", email: "avleen.kaur@thapar.edu", roll: "102303011", hostel: "Thapar Hostel - Girls" },
+    { name: "Ananya Singh (Female · 2nd Yr · C-312)", email: "ananya.singh@thapar.edu", roll: "102303009", hostel: "Thapar Hostel - Girls" },
+    { name: "Priya Reddy (Female · 1st Yr · Unallotted)", email: "priya.reddy@thapar.edu", roll: "102303010", hostel: "Unallotted" },
+    { name: "Karan Mehta (Male · 2nd Yr · Agira Hall)", email: "karan.mehta@thapar.edu", roll: "102303001", hostel: "Agira Hall (Boys)" },
+    { name: "Ishaan Kapoor (Male · 1st Yr · Trio Group)", email: "ishaan.kapoor@thapar.edu", roll: "102303002", hostel: "Agira Hall (Boys)" },
+    { name: "Yash Gupta (Male · 3rd Yr · Quad Group)", email: "yash.gupta@thapar.edu", roll: "102303005", hostel: "Agira Hall (Boys)" },
+    { name: "System Admin (Administration)", email: "admin@thapar.edu", roll: "ADMIN001", hostel: "Central Admin" },
+  ];
+
+  async function performLogin(loginIdentifier: string, loginPass: string) {
     setError("");
     setLoading(true);
     try {
-      const res = await api.post("/api/auth/login", { email, password });
+      const res = await api.post("/api/auth/login", { email: loginIdentifier, password: loginPass });
       setToken(res.data.access_token);
       if (res.data.role === "admin") {
         router.push("/admin");
@@ -25,64 +35,123 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Login failed");
+      const detail = err?.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        // Pydantic v2 validation error — extract human-readable message
+        setError(detail.map((d: any) => d.msg ?? JSON.stringify(d)).join("; "));
+      } else if (typeof detail === "string") {
+        setError(detail);
+      } else {
+        setError("Access Denied: Invalid credentials. Please check your Email / Roll Number and password.");
+      }
     } finally {
       setLoading(false);
     }
   }
 
-  return (
-    <main className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-md bg-white rounded-xl2 shadow-md border border-ink/5 p-8">
-        <Link href="/" className="font-display text-2xl font-semibold text-ink block mb-8">
-          Nest
-        </Link>
-        <h1 className="font-display text-2xl font-semibold mb-2">Welcome back</h1>
-        <p className="text-slate text-sm mb-6">Log in to continue booking your room.</p>
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    performLogin(identifier, password);
+  }
 
+  function selectFromRoster(selectedEmail: string) {
+    setIdentifier(selectedEmail);
+    const isAdm = selectedEmail === "admin@thapar.edu";
+    const pass = isAdm ? "Admin@123" : "Pass@123";
+    setPassword(pass);
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center px-4 bg-sand py-12">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border border-ink/10 p-8">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 mb-6 group">
+          <div className="w-9 h-9 rounded-xl bg-marine text-white font-display font-bold text-xl flex items-center justify-center shadow-xs">
+            N
+          </div>
+          <span className="font-display text-2xl font-bold tracking-tight text-ink">
+            Nest 2.0
+          </span>
+        </Link>
+
+        <h1 className="font-display text-2xl font-bold text-ink mb-1">
+          Registered Student Login
+        </h1>
+        <p className="text-slate text-xs mb-6">
+          Authorized portal login for official pre-registered university students only.
+        </p>
+
+        {/* Database Roster Selector Banner */}
+        <div className="mb-6 p-4 rounded-xl bg-marine/10 border border-marine/20">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-xs font-bold text-marine flex items-center gap-1">
+              <span>🏛️</span> Pre-Registered Student Database
+            </p>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-marine text-white">
+              Official Roster
+            </span>
+          </div>
+          <p className="text-[11px] text-slate mb-2">
+            Select a student from the university database to test logging in:
+          </p>
+
+          <select
+            onChange={(e) => selectFromRoster(e.target.value)}
+            className="w-full border border-marine/30 rounded-xl px-3 py-2 text-xs text-ink font-semibold bg-white focus:ring-2 focus:ring-marine"
+          >
+            <option value="">-- Select Registered Student --</option>
+            {registeredRoster.map((r) => (
+              <option key={r.email} value={r.email}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-ink block mb-1">Institute email</label>
+            <label className="text-xs font-bold text-slate block mb-1">Email or Roll Number</label>
             <input
-              type="email"
+              type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-ink/15 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-marine"
-              placeholder="you@thapar.edu"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className="w-full border border-ink/15 rounded-xl px-4 py-2.5 text-xs text-ink focus:ring-2 focus:ring-marine font-semibold"
+              placeholder="e.g. avleen.kaur@thapar.edu or 2023CS1045"
             />
           </div>
+
           <div>
-            <label className="text-sm font-medium text-ink block mb-1">Password</label>
+            <label className="text-xs font-bold text-slate block mb-1">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-ink/15 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-marine"
+              className="w-full border border-ink/15 rounded-xl px-4 py-2.5 text-xs text-ink focus:ring-2 focus:ring-marine font-semibold"
               placeholder="••••••••"
             />
           </div>
-          {error && <p className="text-coral text-sm">{error}</p>}
+
+          {error && (
+            <div className="p-3 rounded-xl bg-crimson/10 border border-crimson/30 text-xs font-bold text-crimson animate-fadeIn">
+              ⚠️ {error}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-marine text-white rounded-full py-2.5 font-semibold hover:bg-ink transition disabled:opacity-60"
+            className="w-full bg-coral hover:bg-ink text-white rounded-full py-3 font-bold text-xs shadow-md transition disabled:opacity-60"
           >
-            {loading ? "Logging in..." : "Log in"}
+            {loading ? "Verifying Database Record..." : "Log in to Portal"}
           </button>
         </form>
 
-        <p className="text-sm text-slate mt-6 text-center">
-          New here?{" "}
-          <Link href="/signup" className="text-marine font-medium hover:underline">
-            Create an account
-          </Link>
-        </p>
-
-        <div className="mt-6 text-xs text-slate bg-sand rounded-lg p-3 leading-relaxed">
-          Demo accounts — Student: <b>student1@thapar.edu</b> / Pass@123 · Admin:{" "}
-          <b>admin@thapar.edu</b> / Admin@123
+        {/* Restricted Access Note */}
+        <div className="mt-6 text-[11px] text-slate bg-sand rounded-xl p-3.5 leading-relaxed border border-ink/10 text-center">
+          🔒 <strong>Access Restricted:</strong> Registration option is disabled. Only pre-verified student records existing in the university database are authorized to log in.
         </div>
       </div>
     </main>

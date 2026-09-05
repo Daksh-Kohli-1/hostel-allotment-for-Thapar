@@ -15,7 +15,7 @@ class SignupRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    identifier: str
     password: str
 
 
@@ -36,7 +36,34 @@ class UserOut(BaseModel):
     year: int
     branch: str
     contact: str
+    father_name: str = ""
+    mother_name: str = ""
+    emergency_contact_name: str = ""
+    emergency_contact_phone: str = ""
+    aadhaar_no: str = ""
+    address: str = ""
+    dob: str = ""
+    vehicle_type: str = ""
+    vehicle_model: str = ""
+    vehicle_reg_no: str = ""
+    program: str = "B.Tech"
+    department: str = "Computer Engineering"
+    section: str = "COE-2"
     group_id: str | None = None
+    hostel_name: str | None = None
+    room_no: str | None = None
+
+
+class ProfileUpdateRequest(BaseModel):
+    name: str | None = None
+    contact: str | None = None
+    father_name: str | None = None
+    mother_name: str | None = None
+    emergency_contact_name: str | None = None
+    emergency_contact_phone: str | None = None
+    vehicle_type: str | None = None
+    vehicle_model: str | None = None
+    vehicle_reg_no: str | None = None
 
 
 # ---------- Groups ----------
@@ -135,3 +162,124 @@ class PaymentStatusOut(BaseModel):
 class AdminReassignRequest(BaseModel):
     group_id: str
     new_cluster_id: str
+
+
+# ---------- Service Requests ----------
+class ServiceRequestCreate(BaseModel):
+    category: str
+    subject: str
+    description: str
+    priority: str = "Medium"
+
+
+class ServiceRequestOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    user_id: str
+    category: str
+    subject: str
+    description: str
+    priority: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+# ---------- Mess & Feedback & Polls ----------
+class MessFeedbackCreate(BaseModel):
+    rating: int
+    comment: str = ""
+
+
+class MessFeedbackOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    user_id: str
+    rating: int
+    comment: str
+    created_at: datetime
+
+
+class PollVoteCreate(BaseModel):
+    poll_id: str = "weekly_menu_poll"
+    option_index: int
+
+
+# ---------- Visitors ----------
+class VisitorRequestCreate(BaseModel):
+    visitor_name: str
+    phone: str
+    relationship: str
+    visit_date: str
+    expected_arrival: str
+    expected_departure: str
+
+
+class VisitorRequestOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    user_id: str
+    visitor_name: str
+    phone: str
+    relationship: str
+    visit_date: str
+    expected_arrival: str
+    expected_departure: str
+    status: str
+    created_at: datetime
+
+
+# ---------- Leaves ----------
+class LeaveRequestCreate(BaseModel):
+    request_type: str = "Leave"
+    destination: str
+    reason: str
+    start_date: str
+    end_date: str
+    expected_return: str
+    emergency_contact: str
+
+
+class LeaveRequestOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    user_id: str
+    request_type: str
+    destination: str
+    reason: str
+    start_date: str
+    end_date: str
+    expected_return: str
+    emergency_contact: str
+    status: str
+    created_at: datetime
+
+
+# ---------- Amenities ----------
+class AmenityBookingCreate(BaseModel):
+    amenity_name: str
+    booking_date: str
+    time_slot: str
+
+
+class AmenityBookingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    user_id: str
+    amenity_name: str
+    booking_date: str
+    time_slot: str
+    status: str
+    created_at: datetime
+
+
+# ---------- Notifications ----------
+class NotificationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    user_id: str
+    title: str
+    message: str
+    category: str
+    is_read: bool
+    created_at: datetime
