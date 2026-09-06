@@ -16,7 +16,7 @@ class SignupRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     identifier: str
-    password: str
+    password: str 
 
 
 class TokenResponse(BaseModel):

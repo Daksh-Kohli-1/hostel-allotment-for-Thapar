@@ -14,20 +14,20 @@ export default function LoginPage() {
 
   // Official pre-registered university student roster
   const registeredRoster = [
-    { name: "Avleen Kaur (Female · 2nd Yr · C-312)", email: "avleen.kaur@thapar.edu", roll: "102303011", hostel: "Thapar Hostel - Girls" },
-    { name: "Ananya Singh (Female · 2nd Yr · C-312)", email: "ananya.singh@thapar.edu", roll: "102303009", hostel: "Thapar Hostel - Girls" },
-    { name: "Priya Reddy (Female · 1st Yr · Unallotted)", email: "priya.reddy@thapar.edu", roll: "102303010", hostel: "Unallotted" },
-    { name: "Karan Mehta (Male · 2nd Yr · Agira Hall)", email: "karan.mehta@thapar.edu", roll: "102303001", hostel: "Agira Hall (Boys)" },
-    { name: "Ishaan Kapoor (Male · 1st Yr · Trio Group)", email: "ishaan.kapoor@thapar.edu", roll: "102303002", hostel: "Agira Hall (Boys)" },
-    { name: "Yash Gupta (Male · 3rd Yr · Quad Group)", email: "yash.gupta@thapar.edu", roll: "102303005", hostel: "Agira Hall (Boys)" },
+    { name: "Avleen Kaur (Female · 2nd Yr · Pavani Hall)", email: "avleen.kaur@thapar.edu", roll: "2023CS1045", hostel: "Pavani Hall (Girls)" },
+    { name: "Student 2 (Male · 1st Yr)", email: "student2@thapar.edu", roll: "2023CS1102", hostel: "Agira Hall (Boys)" },
+    { name: "Student 3 (Female · 1st Yr)", email: "student3@thapar.edu", roll: "2023CS1103", hostel: "Unallotted" },
+    { name: "Student 4 (Male · 1st Yr · Agira Hall)", email: "student4@thapar.edu", roll: "2023CS1104", hostel: "Agira Hall (Boys) - Solo Booking" },
+    { name: "Student 10 (Male · 1st Yr · Trio Group)", email: "student10@thapar.edu", roll: "2023CS1110", hostel: "Agira Hall (Boys)" },
+    { name: "Student 16 (Male · 1st Yr · Quad Group)", email: "student16@thapar.edu", roll: "2023CS1116", hostel: "Agira Hall (Boys)" },
     { name: "System Admin (Administration)", email: "admin@thapar.edu", roll: "ADMIN001", hostel: "Central Admin" },
-  ];
+];
 
   async function performLogin(loginIdentifier: string, loginPass: string) {
     setError("");
     setLoading(true);
     try {
-      const res = await api.post("/api/auth/login", { email: loginIdentifier, password: loginPass });
+      const res = await api.post("/api/auth/login", { identifier: loginIdentifier, password: loginPass });
       setToken(res.data.access_token);
       if (res.data.role === "admin") {
         router.push("/admin");
@@ -57,7 +57,7 @@ export default function LoginPage() {
   function selectFromRoster(selectedEmail: string) {
     setIdentifier(selectedEmail);
     const isAdm = selectedEmail === "admin@thapar.edu";
-    const pass = isAdm ? "Admin@123" : "Pass@123";
+    const pass = isAdm ? "Admin@123" : "Next@123";
     setPassword(pass);
   }
 

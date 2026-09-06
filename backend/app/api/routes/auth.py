@@ -26,7 +26,7 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     else:
         result = await db.execute(select(User).where(User.roll_no == payload.identifier))
         
-    user = result.scalar_one_or_none()
+    user = result.scalar_one_or_none() 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
