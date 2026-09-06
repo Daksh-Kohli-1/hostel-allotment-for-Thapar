@@ -5,3 +5,4 @@ __pycache__/
 .env
 pgdata/
 .DS_Store
+to-be-deleted/

@@ -55,6 +55,19 @@ class User(Base):
     year: Mapped[int] = mapped_column(Integer, default=1)
     branch: Mapped[str] = mapped_column(String(80), default="")
     contact: Mapped[str] = mapped_column(String(20), default="")
+    father_name: Mapped[str] = mapped_column(String(120), default="")
+    mother_name: Mapped[str] = mapped_column(String(120), default="")
+    emergency_contact_name: Mapped[str] = mapped_column(String(120), default="")
+    emergency_contact_phone: Mapped[str] = mapped_column(String(30), default="")
+    aadhaar_no: Mapped[str] = mapped_column(String(30), default="")
+    address: Mapped[str] = mapped_column(String(255), default="")
+    dob: Mapped[str] = mapped_column(String(30), default="")
+    vehicle_type: Mapped[str] = mapped_column(String(50), default="")
+    vehicle_model: Mapped[str] = mapped_column(String(50), default="")
+    vehicle_reg_no: Mapped[str] = mapped_column(String(50), default="")
+    program: Mapped[str] = mapped_column(String(80), default="B.Tech")
+    department: Mapped[str] = mapped_column(String(80), default="Computer Engineering")
+    section: Mapped[str] = mapped_column(String(20), default="COE-2")
     group_id: Mapped[str | None] = mapped_column(ForeignKey("groups.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -166,6 +179,97 @@ class Payment(Base):
     transaction_ref: Mapped[str] = mapped_column(String(100), nullable=True)
     amount: Mapped[int] = mapped_column(Integer)
     status: Mapped[PaymentStatus] = mapped_column(Enum(PaymentStatus), default=PaymentStatus.pending)
+    user: Mapped["User"] = relationship("User")
+
+
+class ServiceRequest(Base):
+    __tablename__ = "service_requests"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"))
+    category: Mapped[str] = mapped_column(String(50))  # Maintenance, Cleaning, Gate pass, etc.
+    subject: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(String(1000))
+    priority: Mapped[str] = mapped_column(String(20), default="Medium")  # Low, Medium, High, Emergency
+    status: Mapped[str] = mapped_column(String(30), default="Submitted")  # Submitted, In progress, Approved, Completed, Rejected
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship("User")
+
+
+class MessFeedback(Base):
+    __tablename__ = "mess_feedbacks"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"))
+    rating: Mapped[int] = mapped_column(Integer)  # 1 to 5
+    comment: Mapped[str] = mapped_column(String(500), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PollVote(Base):
+    __tablename__ = "poll_votes"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"))
+    poll_id: Mapped[str] = mapped_column(String(50), default="weekly_menu_poll")
+    option_index: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (UniqueConstraint("user_id", "poll_id", name="uq_user_poll_vote"),)
+
+
+class VisitorRequest(Base):
+    __tablename__ = "visitor_requests"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"))
+    visitor_name: Mapped[str] = mapped_column(String(120))
+    phone: Mapped[str] = mapped_column(String(20))
+    relationship: Mapped[str] = mapped_column(String(50))
+    visit_date: Mapped[str] = mapped_column(String(30))
+    expected_arrival: Mapped[str] = mapped_column(String(30))
+    expected_departure: Mapped[str] = mapped_column(String(30))
+    status: Mapped[str] = mapped_column(String(30), default="Pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class LeaveRequest(Base):
+    __tablename__ = "leave_requests"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"))
+    request_type: Mapped[str] = mapped_column(String(30), default="Leave")  # Leave, Day Out, Late Entry
+    destination: Mapped[str] = mapped_column(String(200))
+    reason: Mapped[str] = mapped_column(String(500))
+    start_date: Mapped[str] = mapped_column(String(30))
+    end_date: Mapped[str] = mapped_column(String(30))
+    expected_return: Mapped[str] = mapped_column(String(30))
+    emergency_contact: Mapped[str] = mapped_column(String(30))
+    status: Mapped[str] = mapped_column(String(30), default="Approved")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AmenityBooking(Base):
+    __tablename__ = "amenity_bookings"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"))
+    amenity_name: Mapped[str] = mapped_column(String(100))  # Study Room, Gym, Laundry, etc.
+    booking_date: Mapped[str] = mapped_column(String(30))
+    time_slot: Mapped[str] = mapped_column(String(50))
+    status: Mapped[str] = mapped_column(String(30), default="Confirmed")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"))
+    title: Mapped[str] = mapped_column(String(120))
+    message: Mapped[str] = mapped_column(String(500))
+    category: Mapped[str] = mapped_column(String(30), default="General")  # Payment, Notice, Maintenance, Leave, System
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
