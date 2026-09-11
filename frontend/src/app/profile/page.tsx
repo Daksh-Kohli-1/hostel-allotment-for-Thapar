@@ -46,9 +46,9 @@ export default function ProfilePage() {
     { id: "academics", label: "Academics", icon: "🎓" },
     { id: "family", label: "Family & Emergency", icon: "👨‍👩‍👧" },
     { id: "documents", label: "Documents (KYC)", icon: "📄" },
-    { id: "vehicle", label: "Vehicle Details", icon: "🛵" },
-    { id: "preferences", label: "Preferences", icon: "⚙️" },
-    { id: "security", label: "Security & Privacy", icon: "🔒" },
+    // { id: "vehicle", label: "Vehicle Details", icon: "🛵" },
+    // { id: "preferences", label: "Preferences", icon: "⚙️" },
+    // { id: "security", label: "Security & Privacy", icon: "🔒" },
   ];
 
   return (

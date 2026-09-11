@@ -51,7 +51,7 @@ export default function Home() {
             href="/login"
             className="px-8 py-3.5 border border-ink/20 bg-white text-ink rounded-full font-bold text-base hover:bg-sand transition shadow-xs"
           >
-            Log in as Avleen Kaur
+            Log in
           </Link>
         </div>
       </section>
